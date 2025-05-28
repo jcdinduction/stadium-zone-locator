@@ -136,48 +136,91 @@
     };
 
     function updateLocation() {
-      const coordsDiv = document.getElementById("coords");
-      const zoneInput = document.getElementById("zone");
+  const coordsDiv = document.getElementById("coords");
+  const zoneInput = document.getElementById("zone");
 
-      coordsDiv.textContent = "Detecting location...";
-      zoneInput.value = "";
+  coordsDiv.textContent = "Detecting location...";
+  zoneInput.value = "";
 
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          position => {
-            const lat = parseFloat(position.coords.latitude.toFixed(6));
-            const lon = parseFloat(position.coords.longitude.toFixed(6));
-            const coordsText = `${lat}, ${lon}`;
-            const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const lat = parseFloat(position.coords.latitude.toFixed(6));
+        const lon = parseFloat(position.coords.longitude.toFixed(6));
+        const coordsText = `${lat}, ${lon}`;
+        const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
 
-            coordsDiv.textContent = coordsText;
-            coordsDiv.setAttribute("data-link", mapLink);
-            coordsDiv.classList.add("active");
-            coordsDiv.title = "Click to open in Google Maps";
-            coordsDiv.onclick = () => window.open(mapLink, '_blank');
+        coordsDiv.textContent = coordsText;
+        coordsDiv.setAttribute("data-link", mapLink);
+        coordsDiv.classList.add("active");
+        coordsDiv.title = "Click to open in Google Maps";
+        coordsDiv.onclick = () => window.open(mapLink, '_blank');
 
-            let matchedZone = "Unknown";
-            for (const [zoneName, points] of Object.entries(zones)) {
-              if (isPointInZone(lat, lon, points)) {
-                matchedZone = zoneName;
-                break;
-              }
-            }
-
-            zoneInput.value = matchedZone;
-          },
-          error => {
-            coordsDiv.textContent = {
-              1: "Permission denied.",
-              2: "Position unavailable.",
-              3: "Request timed out."
-            }[error.code] || "Unknown error.";
+        let matchedZone = null;
+        for (const [zoneName, points] of Object.entries(zones)) {
+          if (points.length < 3) continue; // skip incomplete zones
+          if (isPointInZone(lat, lon, points)) {
+            matchedZone = zoneName;
+            break;
           }
-        );
-      } else {
-        coordsDiv.textContent = "Geolocation not supported.";
+        }
+
+        // If not matched, find the nearest zone
+        if (!matchedZone) {
+          let minDistance = Infinity;
+          let nearestZone = "Unknown";
+
+          for (const [zoneName, points] of Object.entries(zones)) {
+            if (points.length < 3) continue;
+            const [centerLat, centerLon] = getZoneCenter(points);
+            const distance = haversineDistance(lat, lon, centerLat, centerLon);
+            if (distance < minDistance) {
+              minDistance = distance;
+              nearestZone = zoneName;
+            }
+          }
+
+          matchedZone = `Nearest: ${nearestZone}`;
+        }
+
+        zoneInput.value = matchedZone;
+      },
+      error => {
+        coordsDiv.textContent = {
+          1: "Permission denied.",
+          2: "Position unavailable.",
+          3: "Request timed out."
+        }[error.code] || "Unknown error.";
       }
-    }
+    );
+  } else {
+    coordsDiv.textContent = "Geolocation not supported.";
+  }
+}
+
+// Get center of polygon
+function getZoneCenter(points) {
+  let latSum = 0, lonSum = 0;
+  for (const [lat, lon] of points) {
+    latSum += lat;
+    lonSum += lon;
+  }
+  return [latSum / points.length, lonSum / points.length];
+}
+
+// Haversine distance (in meters)
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  const toRad = deg => deg * Math.PI / 180;
+  const R = 6371000; // Earth radius in meters
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 
     function isPointInZone(lat, lon, polygon) {
       let inside = false;
