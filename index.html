@@ -1,266 +1,163 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Geofencing</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
-  .side-by-side-textareas {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-
-.textarea-group {
-  flex: 1;
-  min-width: 250px;
-}
-
-.map-link {
-  
-  margin-bottom: 5mm;
-}
-
-.map-link.active {
-  color: #007BFF;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-
-
-
-.textarea-group textarea {
-  width: 100%;
-  box-sizing: border-box;
-}
-  .location-row {
-    display: flex;
-    gap: 20px;
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .location-field {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-width: 200px;
-  }
-
-  body {
-    background: #f9f9f9;
-  }
-
-  .container {
-    width: 100%;
-    max-width: 1000px;
-    margin: 20px auto;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    box-sizing: border-box;
-  }
-
-  fieldset {
-    border: 2px solid #0E3B32;
-    padding: 0mm 10mm;
-    border-radius: 8px;
-    margin-bottom: 10mm;
-  }
-
-  legend {
-    font-weight: bold;
-    color: #0E3B32;
-    padding: 0 5mm;
-  }
-
-  label {
-    display: block;
-    margin-top: 5mm;
-    font-weight: bold;
-  }
-
-  input, select, textarea {
-    width: 100%;
-    padding: 4mm;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    margin-bottom: 5mm;
-    box-sizing: border-box;
-  }
-
-
-  html, body {
-    width: 210mm;
-    height: 297mm;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-    background: white !important;
-    -webkit-print-color-adjust: exact;
-    font-size: 10pt;
-    line-height: 1.4;
-  }
-
-    #printArea {
-      width: 210mm;
-      min-height: 250mm;
-      overflow: hidden;
-      page-break-inside: avoid;
-      break-inside: avoid;
-      padding: 5mm 10mm;
+    body {
+      background: #f9f9f9;
+      font-family: Arial, sans-serif;
     }
 
+    .container {
+      width: 100%;
+      max-width: 800px;
+      margin: 20px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
 
-  fieldset {
-    page-break-inside: avoid;
-    break-inside: avoid;
-    margin-bottom: 4mm !important;
-  }
+    fieldset {
+      border: 2px solid #0E3B32;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
 
-  .container {
-    width: 210mm;
-    height: 297mm;
-    padding: 0;
-    margin: 0;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-  }
+    legend {
+      font-weight: bold;
+      color: #0E3B32;
+      padding: 0 10px;
+    }
 
-  .hfe-before-footer-wrap,
-  .intro,
-  #ast-scroll-top,
-  .logo-container,
-  button,
-  input[type="file"],
-  header,
-  footer {
-    display: none !important;
-  }
-}
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
 
-@page {
-  size: A4;
-  margin: 0;
-}
+    .location-row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
 
-</style>
+    .location-field {
+      flex: 1;
+      min-width: 200px;
+    }
 
-  <div class="container" id="printArea">
+    .map-link {
+      color: #333;
+      cursor: default;
+      word-break: break-word;
+    }
+
+    .map-link.active {
+      color: #007BFF;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    input[readonly] {
+      background: #f0f0f0;
+    }
+  </style>
+</head>
+<body onload="updateLocation()">
+  <div class="container">
     <div style="text-align: right; margin-bottom: 10px;">
       <img src="https://velosiaims.com/wp-content/uploads/2021/09/jeddah-central.png" alt="Jeddah Central Logo" style="max-height: 60px;">
     </div>
-    <h2>Stadium Zoe Locator</h2>
+    <h2>Stadium Zone Locator</h2>
 
-<fieldset>
-  <legend>Auto Location</legend>
-  <div class="location-row">
-    <div class="location-field">
-      <label>Coordinates:</label>
-      <div id="coords" class="map-link">Detecting location...</div>
-
-    </div>
-    <div class="location-field">
-      <label>Zone Name:</label>
-      <input type="text" id="zone" readonly>
-    </div>
+    <fieldset>
+      <legend>Auto Location</legend>
+      <div class="location-row">
+        <div class="location-field">
+          <label>Coordinates:</label>
+          <div id="coords" class="map-link">Detecting location...</div>
+        </div>
+        <div class="location-field">
+          <label>Zone Name:</label>
+          <input type="text" id="zone" readonly>
+        </div>
+      </div>
+    </fieldset>
   </div>
-</fieldset>
-
-
-  </div>
-   
 
   <script>
-    function generatePDF() {
-      const element = document.getElementById("printArea");
-      html2pdf().set({
-        margin: 0,
-        filename: 'Observation_Report.pdf',
-        image: { type: 'jpeg', quality: 1 },
-        html2canvas: { scale: 3 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      }).from(element).save();
-    }
-    
     const zones = {
-  "N4": [[21.53804947718226, 39.1296028723858], [21.53727938493411, 39.12982856761471], [21.53751440711506, 39.13051627756335], [21.53828970686659, 39.13028531968271], [21.53804947718226, 39.1296028723858]],
-  "E1": [[21.53731723370175, 39.12997054847632], [21.53621899553459, 39.13037629803712], [21.53638686342351, 39.13092771132835], [21.53751375072009, 39.13054829708904], [21.53731723370175, 39.12997054847632]],
-  "E2": [[21.53621098076737, 39.13036768553145], [21.53506010546743, 39.13076799162517], [21.53524084111806, 39.131285323111], [21.53635947367988, 39.13093185324632], [21.53621098076737, 39.13036768553145]],
-  "Z1": [[21.53599433046809, 39.12927709248774], [21.53460690798138, 39.12975479109141], [21.5349558316226, 39.13080679515937], [21.53631115672714, 39.13032460696191], [21.53599433046809, 39.12927709248774]],
-  "Z8": [[21.53735315566235, 39.12995782219839], [21.53700824832017, 39.12874627644239], [21.53595025483277, 39.12911339438439], [21.53633893902288, 39.13032819080735], [21.53735315566235, 39.12995782219839]],
-  "N3": [[21.53728891184029, 39.12978968028341], [21.53810742137812, 39.12959128135954], [21.53785423543745, 39.12863069656304], [21.5370563548319, 39.12889727600096], [21.53728891184029, 39.12978968028341]],
-  "N2": [[21.53785131374888, 39.12863347174704], [21.53760758630846, 39.12787541851164], [21.53681415665595, 39.12817564385584], [21.53705335172561, 39.128904372265], [21.53785131374888, 39.12863347174704]],
-  "Z7": [[21.53699755194525, 39.12873282337021], [21.53681415654642, 39.12816278519736], [21.53589321810824, 39.128484243827], [21.53608133394088, 39.12905923251832], [21.53699755194525, 39.12873282337021]],
-  "Z9": [[21.5358822148965, 39.12851964922393], [21.53440371112364, 39.1290463917412], [21.53462319624353, 39.12974499492232], [21.5359578549912, 39.12925193329659], [21.53593795941056, 39.12911490382866], [21.53606142076255, 39.12905923289664], [21.5358822148965, 39.12851964922393]],
-};
-
-
+      "N4": [[21.538049, 39.129603], [21.537279, 39.129829], [21.537514, 39.130516], [21.538290, 39.130285]],
+      "E1": [[21.537317, 39.129971], [21.536219, 39.130376], [21.536387, 39.130928], [21.537514, 39.130548]],
+      "E2": [[21.536211, 39.130368], [21.535060, 39.130768], [21.535241, 39.131285], [21.536359, 39.130932]],
+      "Z1": [[21.535994, 39.129277], [21.534607, 39.129755], [21.534956, 39.130807], [21.536311, 39.130325]],
+      "Z8": [[21.537353, 39.129958], [21.537008, 39.128746], [21.535950, 39.129113], [21.536339, 39.130328]],
+      "N3": [[21.537289, 39.129790], [21.538107, 39.129591], [21.537854, 39.128631], [21.537056, 39.128897]],
+      "N2": [[21.537851, 39.128633], [21.537608, 39.127875], [21.536814, 39.128176], [21.537053, 39.128904]],
+      "Z7": [[21.536998, 39.128733], [21.536814, 39.128163], [21.535893, 39.128484], [21.536081, 39.129059]],
+      "Z9": [[21.535882, 39.128520], [21.534404, 39.129046], [21.534623, 39.129745], [21.535958, 39.129252]]
+    };
 
     function updateLocation() {
-        document.getElementById("coords").textContent = "Detecting location...";
-        document.getElementById("zone").value = "";
+      const coordsDiv = document.getElementById("coords");
+      const zoneInput = document.getElementById("zone");
+
+      coordsDiv.textContent = "Detecting location...";
+      zoneInput.value = "";
 
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-  position => {
-    const lat = parseFloat(position.coords.latitude.toFixed(6));
-    const lon = parseFloat(position.coords.longitude.toFixed(6));
+          position => {
+            const lat = parseFloat(position.coords.latitude.toFixed(6));
+            const lon = parseFloat(position.coords.longitude.toFixed(6));
+            const coordsText = `${lat}, ${lon}`;
+            const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
 
-    const coordsText = `${lat}, ${lon}`;
-    const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
-    const coordsDiv = document.getElementById("coords");
-    coordsDiv.textContent = coordsText;
-    coordsDiv.setAttribute("data-link", mapLink);
-    coordsDiv.classList.add("active");
-    coordsDiv.title = "Click to open in Google Maps";
-    coordsDiv.onclick = () => window.open(mapLink, '_blank');
+            coordsDiv.textContent = coordsText;
+            coordsDiv.setAttribute("data-link", mapLink);
+            coordsDiv.classList.add("active");
+            coordsDiv.title = "Click to open in Google Maps";
+            coordsDiv.onclick = () => window.open(mapLink, '_blank');
 
-    let matchedZone = "Unknown";
-    for (const [zoneName, points] of Object.entries(zones)) {
-      if (isPointInZone(lat, lon, points)) {
-        matchedZone = zoneName;
-        break;
-      }
-    }
-    document.getElementById("zone").value = matchedZone;
-  },
-  error => {
-    const msg = {
-      1: "Permission denied.",
-      2: "Position unavailable.",
-      3: "Request timed out.",
-    }[error.code] || "Unknown error.";
-    document.getElementById("coords").textContent = msg;
-    document.getElementById("zone").value = "Unknown";
-  },
-  {
-    enableHighAccuracy: true,
-    timeout: 10000,
-    maximumAge: 0
-  }
-);
+            let matchedZone = "Unknown";
+            for (const [zoneName, points] of Object.entries(zones)) {
+              if (isPointInZone(lat, lon, points)) {
+                matchedZone = zoneName;
+                break;
+              }
+            }
 
+            zoneInput.value = matchedZone;
+          },
+          error => {
+            coordsDiv.textContent = {
+              1: "Permission denied.",
+              2: "Position unavailable.",
+              3: "Request timed out."
+            }[error.code] || "Unknown error.";
+          }
+        );
+      } else {
+        coordsDiv.textContent = "Geolocation not supported.";
       }
     }
 
+    function isPointInZone(lat, lon, polygon) {
+      let inside = false;
+      for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        const xi = polygon[i][0], yi = polygon[i][1];
+        const xj = polygon[j][0], yj = polygon[j][1];
 
-
-
-        window.addEventListener("pageshow", function () {
-      updateLocation();
-    });
-
-    
-    function isPointInZone(lat, lon, zone) {
-  const [minLat, maxLat] = [Math.min(...zone.map(p => p[0])), Math.max(...zone.map(p => p[0]))];
-  const [minLon, maxLon] = [Math.min(...zone.map(p => p[1])), Math.max(...zone.map(p => p[1]))];
-
-  return lat >= minLat && lat <= maxLat && lon >= minLon && lon <= maxLon;
-}
-
-    
-    
+        const intersect = ((yi > lon) !== (yj > lon)) &&
+                          (lat < (xj - xi) * (lon - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+      }
+      return inside;
+    }
   </script>
-
+</body>
+</html>
